@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/base.css" />
+</head>
+
+<body>
+    <div id="app">
+        <robot-component></robot-component>
+    </div>
+</body>
+
+</html>
+<script src="./lib/vue.js"></script>
+<script src="./lib/axios.min.js"></script>
+<script type="text/html" id="robot">
+    <div class="robot">
+        <h2 class="title">无fuck可说</h2>
+        <input type="text" placeholder="你的心思被我看穿了吧!?" v-model.trim="message" @keyup.enter="sendTo">
+        <transition-group tag="ul" name="list-complete">
+            <li class="list-complete-item" v-for="(item, index) in contentList" :key="item.info" @dblclick="remove(index)">
+                <img :src="item.isMe?'./img/brother.jpg':'./img/sister.jpg'"  alt="">
+                :{{item.info}} 
+            </li>
+        </transition-group>
+    </div>
+</script>
+<script>
+    Vue.component('robot-component', {
+        template:"#robot",
+        data:function(){
+            return {
+                message:'',
+                contentList:[]
+            }
+        },
+        methods:{
+            sendTo(){
+                this.contentList.push({
+                    info:this.message,
+                    isMe:true
+                });
+                // 接口调用
+                // http://www.tuling123.com/openapi/api
+                // 格式化数据 axios 默认会把传入的js对象格式化为 json字符串
+                const params = new URLSearchParams();
+                params.append('key', 'd7c82ebd8b304abeacc73b366e42b9ed');
+                params.append('info', this.message);
+                axios
+                    .post('http://www.tuling123.com/openapi/api', params)
+                    .then( (response)=>{
+                        // console.log(response);
+                        this.contentList.push({
+                            info:response.data.text,
+                            isMe:false
+                        })
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            remove(index){
+                this.contentList.splice(index,1);
+            }
+        }
+    });
+    let app =new Vue({
+        el:"#app"
+    })
+</script>

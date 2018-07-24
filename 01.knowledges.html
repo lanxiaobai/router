@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .list-item {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .list-enter-active,
+        .list-leave-active {
+            transition: all 1s;
+        }
+
+        .list-enter,
+        .list-leave-to
+        /* .list-leave-active for below version 2.1.8 */
+            {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h2>双向绑定结合过滤器</h2>
+        <input type="text" v-model="message">
+        <!-- 过滤器 -->
+        <p>{{message | cut | addHeader | addTail('🐘🐘🐘🐘')}}</p>
+        <h2>this指向问题</h2>
+        <input type="button" value="点我" @click="weather">
+        <!-- <p>{{backData}}</p> -->
+        <transition-group name="list" tag="ul">
+            <li v-bind:style="{transitionDelay: index*300+'ms'}" v-for="(item, index) in weatherList" >
+                {{item.date}}--{{item.high}}--{{item.low}}
+            </li>
+        </transition-group>
+        <!-- 直接写死的数据 不用加冒号 直接写即可 -->
+        <click-compontent title="萌你奶奶个腿" :subtitle="subTitle"></click-compontent>
+    </div>
+</body>
+
+</html>
+<script src="./lib/vue.js"></script>
+<script type="text/html" id="click">
+    <div>
+        <h2>{{title}}---{{subtitle}}</h2>
+        <button @click="num++">{{num}}</button>
+    </div>
+</script>
+<!-- 
+    1.过滤器
+        让我们在显示某些内容是进行一些过滤(操纵显示的值)
+        绑定的数据值每次改变时 都会重新穿过一次过滤器
+-->
+<script>
+    // 组件 定义 以及 注册
+    Vue.component('click-compontent', {
+        template: '#click',
+        // 定义接收的值
+        props: ['title', 'subtitle'],
+        data: function () {
+            return {
+                num: 0
+            }
+        }
+    })
+
+
+    let app = new Vue({
+        el: "#app",
+        data: {
+            message: '',
+            backData: '',
+            subTitle: '中分还带波浪',
+            weatherList: []
+        },
+        methods: {
+            weather() {
+                // 获取天气数据
+                // 原生(ajax使用五部曲)
+                // 1.创建异步对象
+                let xhr = new XMLHttpRequest();
+                // 2.设置请求行
+                xhr.open('get', 'http://wthrcdn.etouch.cn/weather_mini?city=武汉')
+                // 3.设置请求头
+                // 4.注册回调函数
+                // xhr.onload 赋值
+                // 请求回来之后 相当于会 xhr.onload()
+                // 箭头函数 会绑定当前上下文中的this
+                xhr.onload = () => {
+                    // console.log(xhr.responseText);
+                    // console.log(this);
+                    this.backData = xhr.responseText;
+                    let data = JSON.parse(xhr.responseText);
+                    console.log(data);
+                    this.weatherList = data.data.forecast;
+                }
+                // 5.设置请求主体发送
+                xhr.send(null);
+            }
+        },
+        // 局部过滤器
+        filters: {
+            // 
+            cut(value) {
+                // console.log(value);
+                // return '感觉自己萌萌哒';
+                // 不能太长 太长只显示一些
+                if (value.length > 10) {
+                    return value.slice(0, 10);
+                } else {
+                    return value;
+                }
+            },
+            addHeader(value) {
+                return '^_^' + value;
+            },
+            addTail(value, tail) {
+                return value + tail;
+            }
+
+        }
+    })
+
+</script>
